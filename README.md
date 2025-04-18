@@ -26,13 +26,13 @@
 
 📦 project/
 ├── 📂 sql/
- ├──  📜 00_create_tables.sql # Create raw tables of sales and weather
- ├──  📜 01_create_view_weather.sql # Create combined view of weather data
- ├── 📜 02_join_weather_sales.sql # Join weather data and sales
- ├── 📜 03_clean_optimized_table.sql # Create clean table with indexes and constraints
- ├── 📜 04_queries.sql # Advanced analysis queries.
- ├──  📜 README_queries.md # Detailed explanations queries 11-19
-├── 📜 README.md # This file.
+	├──  📜 00_create_tables.sql # Create raw tables of sales and weather
+ 	├──  📜 01_create_view_weather.sql # Create combined view of weather data
+ 	├── 📜 02_join_weather_sales.sql # Join weather data and sales
+ 	├── 📜 03_clean_optimized_table.sql # Create clean table with indexes and constraints
+ 	├── 📜 04_queries.sql # Advanced analysis queries.
+ 	├──  📜 README_queries.md # Detailed explanations queries 11-19
+	├── 📜 README.md # This file.
 └── 📜 schema_diagram.png # (optional) ER diagram of tables.
 
 
