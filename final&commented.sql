@@ -1,7 +1,7 @@
 -- =====================================================================================
 -- PROJECT: Sales & Weather Analysis
--- DATABASE: sales1
--- DESCRIPTION:
+-- DATABASE: sales1 
+-- DESCRIPTION: 
 --   This project integrates two distinct datasets—sales data and 
 --   weather conditions—with the goal of enabling insightful queries 
 --   that correlate weather patterns with sales performance.
@@ -26,20 +26,20 @@
 -- Create the project database if it doesn't already exist
 CREATE DATABASE IF NOT EXISTS sales_data;
 
--- Create the raw orders table to hold imported sales data
+-- Create the raw orders table to hold imported sales data: 
 CREATE TABLE IF NOT EXISTS sales_data.orders_raw (
     row_id INT,  -- Internal unique identifier for each row
-    order_id VARCHAR(50),  -- Unique order code (may repeat if multiple items in one order)
-    order_date VARCHAR(20),   -- Stored as string for format compatibility during import
+    order_id VARCHAR(50),  -- Unique order code (may repeat if multiple items in one order; see below...)
+    order_date VARCHAR(20),   -- Stored as string for format compatibility during import, (see below for optimization ...)
     ship_date VARCHAR(20),   -- Same as above for shipping date
-    ship_mode VARCHAR(50),  -- How the order was shipped (e.g., Standard Class)
-    customer_id VARCHAR(50),  -- Unique ID per customer
+    ship_mode VARCHAR(50),  -- How the order was shipped (first and  Standard Class)
+    customer_id VARCHAR(50),  -- Unique ID for each customer
     customer_name VARCHAR(100),  -- Full name of the customer
-    segment VARCHAR(50),  -- Market segment (e.g., Consumer, Corporate)
+    segment VARCHAR(50),  -- Market segment (like :  Consumer, Corporate)
     country VARCHAR(50),  -- Customer country
-    city VARCHAR(50),  -- Customer city (used for joining with weather data)
+    city VARCHAR(50),  -- Customer city (we will use it for joining with weather data)
     state VARCHAR(50),  -- Customer state/province
-    postal_code VARCHAR(20),  -- String format for broader compatibility
+    postal_code VARCHAR(20),  -- String format compatibility
     region VARCHAR(50),  -- Sales region (e.g., West, South)
     product_id VARCHAR(50),  -- Unique identifier for the product
     category VARCHAR(50),  -- Main product category
@@ -47,16 +47,14 @@ CREATE TABLE IF NOT EXISTS sales_data.orders_raw (
     product_name VARCHAR(200),  -- Full descriptive name of the product
     sales DECIMAL(10,2),  -- Amount of money from the sale
     quantity INT,  -- Number of items sold
-    discount DECIMAL(5,2),  -- Discount applied (e.g., 0.2 for 20%)
+    discount DECIMAL(5,2),  -- Discount applied (0.2 for 20%)
     profit DECIMAL(10,2)  -- Profit from the transaction
 );
 
 
 
-
- -- =======================================================================
+-- =======================================================================
 -- SECTION: Weather Table Creation and Uniqueness Check for Order IDs
--- DATABASE: sales_data
 -- DESCRIPTION:
 --   This section begins with a query to inspect the raw sales orders and
 --   to verify whether the ⁠ order_id ⁠ can be used as a unique primary key.
@@ -76,8 +74,6 @@ CREATE TABLE IF NOT EXISTS sales_data.orders_raw (
 
 
 
-
-
 -- Inspect the contents of the raw orders
 SELECT * FROM sales1.orders_raw;
 
@@ -92,9 +88,8 @@ HAVING cnt > 1
 ORDER BY cnt DESC;
 
 
-
 -- =======================================================================
--- Temperature Table
+-- Temperature Table : 
 -- Captures daily average temperature data for each city
 -- Composite key ensures uniqueness for (date, city) combinations
 -- Indexes support fast lookup by city or date
@@ -109,7 +104,7 @@ CREATE TABLE temperature (
     INDEX idx_date (date)
 );
 
--- Humidity Table
+-- Humidity Table : 
 -- Stores relative humidity readings per city per day
 -- Same structure and indexing strategy as the temperature table
 CREATE TABLE humidity (
@@ -121,7 +116,7 @@ CREATE TABLE humidity (
     INDEX idx_date (date)
 );
 
--- Weather Description Table
+-- Weather Description Table : 
 -- Records qualitative descriptions like 'Sunny', 'Rainy', etc.
 -- Follows same schema structure for consistency
 CREATE TABLE description (
@@ -134,21 +129,16 @@ CREATE TABLE description (
 );
 
 
-
-
-
-
-
 -- =======================================================================
 -- SECTION: Weather Data Integration and Join with Sales Orders
 -- DESCRIPTION:
 --   In this section, we consolidate weather data from multiple sources—
 --   temperature, humidity, and description—into a single structure.
---   This enables us to seamlessly join weather conditions with sales records
---   and perform analysis based on both environmental and commercial factors.
+--   This enables us to  join weather conditions correctly with sales data 
+--   and perform analysis based on both weather and sales factors.
 -- =======================================================================
 
--- Create a combined view (for quick reference) that joins weather components
+-- Here we start creating a combined view (for quick reference) that joins weather components
 -- Note: This query could be turned into a materialized table if performance is needed
 -- CREATE VIEW sales_data.combined_weather AS
 SELECT 
@@ -183,9 +173,12 @@ LEFT JOIN
 -- Count how many records we successfully aggregated into the combined table
 SELECT COUNT(*) FROM combined_weather1;
 
--- ⚡ Benchmark query performance
+-- Benchmark query performance
 -- This helps us evaluate how efficiently queries run on the combined table
 EXPLAIN ANALYZE SELECT * FROM combined_weather1;
+
+
+
 
 -- =======================================================================
 -- SECTION: Join Sales with Weather
@@ -216,20 +209,16 @@ SELECT COUNT(*) FROM sales_weather;  -- Good to validate row integrity
 
 
 
-
-
-
-
 -- =======================================================================
 -- QUERY 1: Temperature and Humidity Distribution per City
 -- Purpose: Understand average climate conditions in each city.
 -- =======================================================================
 SELECT 
-    City,                               -- Name of the city (used for grouping)
-    AVG(temperature) AS avg_temp,       -- Average temperature in that city
-    AVG(humidity) AS avg_humidity       -- Average humidity in that city
+    City,                               
+    AVG(temperature) AS avg_temp,       -- return the average temperature in that city
+    AVG(humidity) AS avg_humidity       -- // average humidity in that city
 FROM 
-    sales_weather                       -- Source table combining sales and weather data
+    sales_weather                       -- from the source table (combining sales and weather data)
 GROUP BY 
     City;                               -- Grouping results per city
 
@@ -238,9 +227,9 @@ GROUP BY
 -- Purpose: Identify cities and regions with the highest average sales.
 -- =======================================================================
 SELECT 
-    Region,                             -- Geographic region (e.g., West, East)
-    City,                               -- Specific city within the region
-    AVG(Sales) AS avg_sales             -- Average sales amount for each city
+    Region,                             
+    City,                               
+    AVG(Sales) AS avg_sales             --  average sales amount for each city
 FROM 
     sales_weather
 GROUP BY 
@@ -251,34 +240,32 @@ GROUP BY
 -- Purpose: Rank regions/states by overall sales and profit.
 -- =======================================================================
 SELECT 
-    Region,                             -- High-level geographic zone
-    State,                              -- State within the region
-    SUM(Sales) AS Total_Sales,          -- Total sales value in the state
-    SUM(Profit) AS Total_Profit         -- Total profit generated in the state
+    Region,                             
+    State,                             
+    SUM(Sales) AS Total_Sales,          -- total sales value in the state
+    SUM(Profit) AS Total_Profit         -- total profit generated in the state
 FROM 
     sales_weather
 GROUP BY 
-    Region, State                       -- Aggregating by region and state
+    Region, State                       -- aggregating by region and state
 ORDER BY 
-    Total_Sales DESC;                   -- Sorting to show highest sales first
+    Total_Sales DESC;                   -- sorted to show highest sales first
     
     
-    
-
 -- =======================================================================
 -- QUERY 4: Most Profitable Customers
 -- Purpose: Identify which customers generated the highest total profit.
 -- =======================================================================
 SELECT 
-    Customer_ID,                        -- Unique identifier for each customer
-    Customer_Name,                      -- Full name of the customer
-    SUM(Profit) AS Total_Profit         -- Total profit generated from all their purchases
+    Customer_ID,                        
+    Customer_Name,                      
+    SUM(Profit) AS Total_Profit         -- total profit generated from all "customer" purchases
 FROM 
     sales_weather
 GROUP BY 
-    Customer_ID, Customer_Name          -- Grouping to aggregate profit by customer
+    Customer_ID, Customer_Name          -- grouping to aggregate profit by customer
 ORDER BY 
-    Total_Profit DESC;                  -- Sorting to get the most profitable customers at the top
+    Total_Profit DESC;                  -- sorting to get the most profitable customers at the top
 
 
 -- =======================================================================
@@ -286,16 +273,16 @@ ORDER BY
 -- Purpose: Extended version of Query 4, including total sales alongside profit.
 -- =======================================================================
 SELECT 
-    Customer_ID,                        -- Customer identifier
-    Customer_Name,                      -- Customer full name
-    SUM(Sales) AS Total_Sales,          -- Total value of purchases made by the customer
-    SUM(Profit) AS Total_Profit         -- Corresponding profit generated
+    Customer_ID,                        
+    Customer_Name,                     
+    SUM(Sales) AS Total_Sales,          -- return the total value of purchases made by the customer
+    SUM(Profit) AS Total_Profit         -- return the corresponding profit generated
 FROM 
     sales_weather
 GROUP BY 
-    Customer_ID, Customer_Name          -- Aggregated by customer
+    Customer_ID, Customer_Name          -- aggregated by customer
 ORDER BY 
-    Total_Profit DESC;                  -- Customers ranked by profit
+    Total_Profit DESC;                  -- customers ranked by profit
 
 
 -- =======================================================================
@@ -303,50 +290,46 @@ ORDER BY
 -- Purpose: Analyze how different product types perform within each market segment.
 -- =======================================================================
 SELECT 
-    Segment,                            -- Market segment (e.g., Consumer, Corporate)
-    Category,                           -- Product category (e.g., Office Supplies)
-    Sub_Category,                       -- More detailed product group (e.g., Binders)
-    COUNT(Order_ID) AS Number_of_Orders, -- Number of orders placed for this sub-category
-    SUM(Sales) AS Total_Sales,          -- Total sales revenue
-    SUM(Profit) AS Total_Profit         -- Total profit from these products
+    Segment,                            
+    Category,                           
+    Sub_Category,                       
+    COUNT(Order_ID) AS Number_of_Orders, -- number of orders placed for this sub-category
+    SUM(Sales) AS Total_Sales,          -- return the total sales revenue
+    SUM(Profit) AS Total_Profit         -- // total profit from these products
 FROM 
     sales_weather
 GROUP BY 
-    Segment, Category, Sub_Category     -- Aggregating at 3 levels: segment > category > sub-category
+    Segment, Category, Sub_Category     -- aggregating at 3 levels: segment > category > sub-category
 ORDER BY 
-    Segment, Total_Sales DESC;          -- Sorting results by segment and top-selling items
+    Segment, Total_Sales DESC;          -- sorting results by segment and top-selling items
     
     
-
-
-
 
 -- =======================================================================
 -- QUERY 7: Weather Conditions on High-Sales Days
 -- Purpose: Identify what kind of weather was present in cities on days
 --          when total sales exceeded $1000.
---          This helps explore potential correlations between good weather
+--          this helps explore potential correlations between good weather
 --          and increased purchasing activity.
 -- =======================================================================
 
 
 SELECT DISTINCT 
-    o.city,                            -- Name of the city where the sales occurred
-    o.order_date,                      -- Original order date (still in string format here)
-    d.description                      -- Weather description on that day (e.g., Clear, Rainy)
+    o.city,                            -- name of the city where the sales occurred
+    o.order_date,                      -- original order date (still in string format here)
+    d.description                      -- weather description on that day (Clear, Rainy)
 FROM 
-    sales_data.orders_raw o            -- Sales data (raw, unoptimized)
+    sales_data.orders_raw o            -- sales data (raw, unoptimized)
 JOIN 
-    sales_data.description d           -- Weather descriptions table
-    ON o.city = d.city                 -- Match records by city
+    sales_data.description d           -- weather descriptions table
+    ON o.city = d.city                 -- match data by city
     AND STR_TO_DATE(o.order_date, '%m/%d/%Y') = d.date  
-                                       -- Convert order_date string to DATE and match with weather date
+                                       -- convert order_date string to DATE and match with weather date
 GROUP BY 
     o.city, o.order_date, d.description  
-                                       -- Group to allow aggregation for HAVING clause
+                                       -- grouping now  to allow aggregation for HAVING clause
 HAVING 
-    SUM(o.sales) > 1000;               -- Filter to only include days with total sales > $1000
-
+    SUM(o.sales) > 1000;               -- filtered to only include days with total sales > $1000
 
 
 
@@ -364,35 +347,35 @@ HAVING
 -- 1: Define CTE 'sunny_orders' to filter sales only on sunny days
 WITH sunny_orders AS (
     SELECT 
-        o.region,                          -- Geographic region of the order
-        o.product_name,                    -- Name of the product sold
-        SUM(o.sales) AS total_sales        -- Aggregate sales per product and region
+        o.region,                          -- geographic region of the order
+        o.product_name,                    
+        SUM(o.sales) AS total_sales        -- return the aggregate sales per product and region
     FROM 
         sales_data.orders_raw o
     JOIN 
-        sales_data.description d           -- Join with weather description
-        ON o.city = d.city                 -- Match on city
+        sales_data.description d           -- join with weather description
+        ON o.city = d.city                 -- match them ON: city
         AND STR_TO_DATE(o.order_date, '%m/%d/%Y') = d.date
-                                           -- Convert string date and match with weather date
+                                           -- convert string date and match with weather date
     WHERE 
-        d.description LIKE '%sky is clear%'  -- Only consider "sunny" days
+        d.description LIKE '%sky is clear%'  -- here we only consider "sunny" days
     GROUP BY 
-        o.region, o.product_name           -- Group by region and product for aggregation
+        o.region, o.product_name           -- finally group by region and product for aggregation
 ),
 
--- 2: Rank products within each region based on total_sales
+-- 2: here we rank products within each region based on total_sales
 ranked_products AS (
     SELECT 
         *,  -- All fields from sunny_orders
         RANK() OVER (
             PARTITION BY region 
             ORDER BY total_sales DESC
-        ) AS rnk                          -- Ranking products within each region (1 = top seller)
+        ) AS rnk                          -- ranking products within each region (1 = top seller)
     FROM 
         sunny_orders
 )
 
--- 3: Select only the top product per region (rank 1)
+-- 3: now selecting only the top product per region (rank 1)
 SELECT 
     region, 
     product_name, 
@@ -400,16 +383,13 @@ SELECT
 FROM 
     ranked_products
 WHERE 
-    rnk = 1;                              -- Keep only the top-selling product per region
+    rnk = 1;                              -- keeping only the top-selling product per region
     
     
 
-
-
--- Customers whose average order profit is below average in their region
 
 -- =======================================================================
--- QUERY 9: Customers Whose Average Profit Is Below the Regional Average
+-- QUERY 9: Customers whose average profit is below the regional average
 -- Purpose:
 --   This query identifies customers whose average order profit is 
 --   lower than the average profit for their region.
@@ -420,7 +400,7 @@ WHERE
 --   Then it compares them to find underperforming customers.
 -- =======================================================================
 
--- Step 1: CTE to calculate the average profit per region
+-- 1: CTE to calculate the average profit per region
 WITH regional_avg_profit AS (
     SELECT 
         region,                               -- Geographic region
@@ -431,7 +411,7 @@ WITH regional_avg_profit AS (
         region                                -- One row per region
 ),
 
--- Step 2: CTE to calculate the average profit per customer (within their region)
+-- 2: CTE to calculate the average profit per customer (within their region)
 customer_avg_profit AS (
     SELECT 
         customer_id,                          -- Unique identifier for the customer
@@ -444,23 +424,23 @@ customer_avg_profit AS (
         customer_id, customer_name, region    -- Grouping to avoid duplicates
 )
 
--- Step 3: Final selection of underperforming customers
+-- 3: Final selection of underperforming customers
 SELECT 
-    c.customer_id,                            -- Customer ID
-    c.customer_name,                          -- Customer full name
-    c.region,                                 -- Their region
-    c.avg_profit_customer                     -- Their average profit
+    c.customer_id,                           
+    c.customer_name,                          
+    c.region,                                 
+    c.avg_profit_customer                     
 FROM 
-    customer_avg_profit c                     -- From customer's average profit table
+    customer_avg_profit c                     
 JOIN 
     regional_avg_profit r 
-    ON c.region = r.region                    -- Join with regional averages
+    ON c.region = r.region                    -- joining with regional averages
 WHERE 
     c.avg_profit_customer < r.avg_profit_region
 											
-											  -- Filter: customers earning below the regional average
+											  -- filter: customers earning below the regional average
 ORDER BY 
-    avg_profit_region DESC;                   -- Sort by region's profit (most profitable at top)
+    avg_profit_region DESC;                   -- soredt by region's profit (most profitable at top)
 
 
 -- =======================================================================
@@ -475,10 +455,10 @@ ORDER BY
 --   influences on sales.
 -- =======================================================================
 
--- Step 1: Create a CTE to extract monthly metrics
+-- 1: Create a CTE to extract monthly metrics
 WITH monthly_data AS (
     SELECT 
-        o.city,                                              -- City of the order
+        o.city,                                             
         MONTH(STR_TO_DATE(o.order_date, '%m/%d/%Y')) AS month,  
                                                              -- Extract numeric month from string-formatted date
         SUM(o.sales) AS total_sales,                         -- Total sales in that month
@@ -486,25 +466,24 @@ WITH monthly_data AS (
     FROM 
         sales_data.orders_raw o
     JOIN 
-        sales_data.temperature t                             -- Join with temperature data
-        ON o.city = t.city                                   -- Match by city
-        AND STR_TO_DATE(o.order_date, '%m/%d/%Y') = t.date   -- Convert and match order date with temperature date
+        sales_data.temperature t                             -- join with temperature data
+        ON o.city = t.city                                   -- match by city
+        AND STR_TO_DATE(o.order_date, '%m/%d/%Y') = t.date   -- now convert and match order date with temperature date
     WHERE 
-        YEAR(STR_TO_DATE(o.order_date, '%m/%d/%Y')) = 2014    -- Filter only for the year 2014
+        YEAR(STR_TO_DATE(o.order_date, '%m/%d/%Y')) = 2014    -- filter only for the year 2014
     GROUP BY 
-        o.city, MONTH(STR_TO_DATE(o.order_date, '%m/%d/%Y'))  -- Group by city and month
+        o.city, MONTH(STR_TO_DATE(o.order_date, '%m/%d/%Y'))  -- group by city and month
 )
 
--- Step 2: Select from the CTE and order the result
+-- 2: Select from the CTE and order the result
 SELECT 
-    *                                                       -- Show all columns: city, month, total_sales, avg_temp
+    *                                                       -- showing all columns: city, month, total_sales, avg_temp
 FROM 
     monthly_data
 ORDER BY 
-    city, month;                                            -- Sort alphabetically by city and chronologically by month
+    city, month;                                            -- sorted alphabetically by city and chronologically by month
     
     
- 
  
  
  
@@ -587,7 +566,6 @@ SET ship_date_proper = STR_TO_DATE(ship_date, '%d/%m/%y');
 
 
 
-
 -- ============================================================================
 -- TABLE: sales_weather_clean
 -- PROJECT: Sales + Weather Data Integration
@@ -595,20 +573,20 @@ SET ship_date_proper = STR_TO_DATE(ship_date, '%d/%m/%y');
 --   This table is an optimized, cleaned, and enriched version of the original 
 --   sales-weather joined dataset. It is designed to enable faster, more reliable 
 --   analytical queries by ensuring:
---     - Correct data types (e.g., proper DATE fields)
+--     - Correct data types (of course :  proper DATE fields)
 --     - Integrity constraints for data consistency
 --     - Strategic indexes for performance optimization
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS sales_data.sales_weather_clean (
     row_id VARCHAR(50) NOT NULL,                  -- Internal row identifier
-    order_id VARCHAR(50) NOT NULL,                -- Sales order ID (can repeat for multi-product orders)
+    order_id VARCHAR(50) NOT NULL,                -- Sales order ID (can repeat for multi-product orders , in this case see up...)
     order_date DATE NOT NULL,                     -- Properly formatted order date
     ship_date DATE,                               -- Properly formatted shipping date
-    ship_mode VARCHAR(50),                        -- Shipping method (e.g., Standard Class)
+    ship_mode VARCHAR(50),                        -- Shipping method (as:  Standard Class)
     customer_id VARCHAR(50) NOT NULL,             -- Unique customer identifier
     customer_name VARCHAR(100) NOT NULL,          -- Full name of the customer
-    segment VARCHAR(50),                          -- Customer segment (e.g., Consumer, Corporate)
+    segment VARCHAR(50),                          -- Customer segment (like  Consumer, Corporate)
     country VARCHAR(50) NOT NULL,                 -- Country of customer (assumed to be consistent)
     city VARCHAR(50) NOT NULL,                    -- City of customer (used to join with weather data)
     state VARCHAR(50),                            -- State/Province
@@ -624,9 +602,9 @@ CREATE TABLE IF NOT EXISTS sales_data.sales_weather_clean (
     profit DECIMAL(10,2),                         -- Profit from this transaction
 
     -- Weather-related attributes
-    temperature DECIMAL(10,2),                    -- Recorded temperature on the order date
+    temperature DECIMAL(10,2),                    -- recorded temperature on the order date
     humidity DECIMAL(10,2),                       -- Recorded humidity on the order date
-    weather_description VARCHAR(50),              -- Textual weather condition (e.g., "Sky is Clear")
+    weather_description VARCHAR(50),              -- Textual weather condition ( for example :  "Sky is Clear")
 
     -- PERFORMANCE OPTIMIZATION: Adding indexes for frequent filters and joins
     INDEX idx_order_id (order_id),
@@ -704,18 +682,18 @@ FROM sales_data.sales_weather;
 
 
 -- ============================================================================
--- 🔍 DATA VALIDATION & CLEANING: sales_weather_clean
+-- DATA VALIDATION & CLEANING: sales_weather_clean
 -- PURPOSE:
 --   This section focuses on verifying data quality within the optimized table 
 --   ⁠ sales_weather_clean ⁠. The goals are:
---     1. Identify and handle duplicate records (e.g., same ⁠ row_id ⁠)
+--     1. Identify and handle duplicate records (for ⁠row_id ⁠)
 --     2. Ensure there are no NULLs in critical columns like ⁠ row_id ⁠
 --     3. Investigate why ⁠ order_id ⁠ cannot be used as a PRIMARY KEY
 -- ============================================================================
 
--- 🔁 STEP 1: Check for duplicate row_id values
+--   1: Check for duplicate row_id values
 --    While ⁠ row_id ⁠ should ideally be unique, this check helps confirm if 
---    accidental duplication has occurred (e.g., due to joins or multiple inserts).
+--    accidental duplication has occurred ( due to joins or multiple inserts).
 SELECT 
     row_id, 
     COUNT(*) AS duplicate_count
@@ -724,32 +702,32 @@ GROUP BY row_id
 HAVING COUNT(*) > 1
 LIMIT 10;
 
--- 🧹 INSIGHT: Only 2 duplicate row_ids were found.
+-- INSIGHT: Only 2 duplicate row_ids were found.
 --    These should be manually reviewed and removed if necessary to ensure data consistency.
 
--- 🚫 STEP 2: Check for NULL values in the ⁠ row_id ⁠ field
+--   2: Check for NULL values in the ⁠ row_id ⁠ field
 --    We want to confirm that all rows have a valid row identifier.
 SELECT COUNT(*) 
 FROM sales_data.sales_weather_clean 
 WHERE row_id IS NULL;
 
--- ✅ RESULT: Zero NULL values were found. This means all rows have valid identifiers.
+-- RESULT: Zero NULL values were found. This means all rows have valid identifiers.
 
--- ❌ STEP 3: Remove the specific rows identified as duplicates
+--  3: Remove the specific rows identified as duplicates
 --    (Note: Not shown here, but you would use DELETE with a WHERE condition 
 --    or use ROW_NUMBER in a CTE to retain only the first instance.)
 
 -- ============================================================================
--- ⚙️ PERFORMANCE TEST: Evaluate execution speed of full table scan
---    The goal is to ensure that our optimizations (e.g., indexing) are effective.
+-- PERFORMANCE TEST: Evaluate execution speed of full table scan
+--    The goal is to ensure that our optimizations (indexing) are effective.
 -- ============================================================================
 
--- 🚀 Measure the execution plan and timing for a full table read
+-- Measure the execution plan and timing for a full table read
 EXPLAIN ANALYZE SELECT * FROM sales_weather_clean;
 
--- ✅ Example Result: 0.08 sec (previous version without indexes took nearly twice as long)
+-- Example Result: 0.08 sec (previous version without indexes took nearly twice as long)
 
--- 📊 Quick check: How many rows are in the optimized table?
+-- Quick check: How many rows are in the optimized table?
 SELECT COUNT(*) FROM sales_weather_clean;
 
 -- ============================================================================
@@ -759,7 +737,7 @@ SELECT COUNT(*) FROM sales_weather_clean;
 --   Therefore, order_id can repeat across rows — it's not a good candidate for PRIMARY KEY.
 -- ============================================================================
 
--- 🧠 Check how many order_ids appear more than once
+-- Check how many order_ids appear more than once
 SELECT 
     order_id, 
     COUNT(*) AS cnt
@@ -768,7 +746,7 @@ GROUP BY order_id
 HAVING cnt > 1
 ORDER BY cnt DESC;
 
--- 🔁 RESULT: Many order_ids appear multiple times.
+-- RESULT: Many order_ids appear multiple times.
 --    Example: An order with 3 different items will result in 3 separate rows,
 --    all sharing the same ⁠ order_id ⁠ but differing in ⁠ product_id ⁠ and details.
 --    ➤ This is why we avoided setting ⁠ order_id ⁠ as a UNIQUE constraint or PRIMARY KEY.
@@ -784,7 +762,7 @@ ORDER BY cnt DESC;
 --   This query analyzes how different weather conditions influence product 
 --   performance at the sub-category level. By combining sales and weather data, 
 --   we can identify which sub-categories perform best under specific 
---   weather descriptions (e.g., "Rain", "Sunny", etc.).
+--   weather descriptions (like :  "Rain", "Sunny", and more ....)
 --
 --   This kind of analysis can support data-driven decisions like:
 --     - targeted promotions based on forecasted weather
@@ -822,7 +800,7 @@ LIMIT 10;                                   -- Return only the top 10 combinatio
 -- QUERY 12: Category-Level Product Performance by Weather Type
 -- PURPOSE:
 --   This query extends the analysis of product sales by weather condition, 
---   focusing on higher-level product categories (e.g., Furniture, Technology).
+--   focusing on higher-level product categories (as : Furniture, Technology).
 --
 --   While Query 11 analyzed sub-categories, here we generalize to observe 
 --   broader trends—such as whether entire product categories perform better 
@@ -835,8 +813,8 @@ LIMIT 10;                                   -- Return only the top 10 combinatio
 -- ============================================================================
 
 SELECT 
-    w.description,                  -- Weather description (e.g., "Rain", "Snow", "Clear sky")
-    o.category,                     -- High-level product category (e.g., "Technology", "Furniture")
+    w.description,                  
+    o.category,                     -- High-level product category 
     COUNT(*) AS orders,             -- Number of transactions (rows) matching the condition
     SUM(o.quantity) AS items_sold   -- Total quantity sold across all orders
 FROM 
@@ -852,8 +830,6 @@ GROUP BY
     w.description, o.category       -- Group by weather condition and product category
 ORDER BY 
     items_sold DESC;                -- Show categories with highest unit sales first
-    
-    
     
     
     
@@ -895,7 +871,6 @@ FROM (
 WHERE rank_within_weather <= 5                         -- Filter to top 5 products per weather type
 ORDER BY 
     weather_description, total_sales DESC;            -- Final sorted output for clarity
-    
     
     
 -- ============================================================================
@@ -1064,13 +1039,13 @@ LIMIT 20;                                    -- Show top 20 most successful weat
 -- ============================================================================
 
 SELECT 
-    region,                                  -- Broad geographical region (e.g., West, South)
+    region,                                  -- geographical region (e.g., West, South)
     city,                                    -- Specific city name
     category,                                -- Product category (e.g., Furniture, Technology)
-    sub_category,                            -- More granular product classification
-    COUNT(*) AS num_orders,                  -- Total number of orders in these conditions
-    SUM(quantity) AS total_quantity,         -- Total quantity of items sold
-    SUM(sales) AS total_sales                -- Total sales value for each city/category combo
+    sub_category,                            -- More specific product classification
+    COUNT(*) AS num_orders,                  -- return thr total number of orders in these conditions
+    SUM(quantity) AS total_quantity,         -- // total quantity of items sold
+    SUM(sales) AS total_sales                -- // total sales value for each city/category combo
 FROM sales_data.sales_weather_clean
 WHERE humidity > 70                          -- Only include records with high humidity
 GROUP BY 
@@ -1099,14 +1074,13 @@ ORDER BY
 -- ============================================================================
 
 SELECT 
-    region,                                   -- Region (e.g., East, West, South, Central)
-    city,                                     -- City name
-    category,                                 -- Product category (e.g., Office Supplies)
-    sub_category,                             -- Product sub-category (e.g., Binders, Chairs)
-    COUNT(*) AS num_orders,                   -- Number of orders in "ideal" weather
-    SUM(sales) AS total_sales,                -- Total sales in monetary value
-    ROUND(AVG(temperature), 1) AS avg_temp,   -- Average temperature rounded to 1 decimal
-    ROUND(AVG(humidity), 1) AS avg_humidity   -- Average humidity rounded to 1 decimal
+    region,                                   
+    category,                                 --  ( Office Supplies)
+    sub_category,                             -- ( Binders, Chairs)
+    COUNT(*) AS num_orders,                   -- return the number of orders in "ideal" weather
+    SUM(sales) AS total_sales,                -- // total sales in monetary value
+    ROUND(AVG(temperature), 1) AS avg_temp,   -- // average temperature rounded to 1 decimal
+    ROUND(AVG(humidity), 1) AS avg_humidity   -- // average humidity rounded to 1 decimal
 FROM sales_data.sales_weather_clean
 WHERE 
     temperature BETWEEN 226 AND 299           -- Ideal temperature range in Kelvin
@@ -1118,14 +1092,12 @@ ORDER BY
     
     
     
-    
-    
 
 -- ================================================================================
 -- PERFORMANCE OPTIMIZATION: Sales Analysis under Clear Weather Conditions
 --
 -- GOAL:
---   Analyze the average sales per region specifically when the weather is 
+--   to analyze the average sales per region specifically when the weather is 
 --   described as 'sky is clear'. This helps assess if sales perform better 
 --   in sunny, favorable conditions.
 --
