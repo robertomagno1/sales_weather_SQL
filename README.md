@@ -24,8 +24,10 @@
 ## 📁 Project structure
 
 
-📦 project/
-├── 📂 sql/
+
+
+├── project/                 # sql modules for the function used in the main 
+
 	├──  📜 00_create_tables.sql # Create raw tables of sales and weather
  	├──  📜 01_create_view_weather.sql # Create combined view of weather data
  	├── 📜 02_join_weather_sales.sql # Join weather data and sales
@@ -33,7 +35,11 @@
  	├── 📜 04_queries.sql # Advanced analysis queries.
  	├──  📜 README_queries.md # Detailed explanations queries 11-19
 	├── 📜 README.md # This file.
+        
+├── .gitignore            # Git ignore file for excluding unnecessary files
+├── README.md             # Project documentation
 └── 📜 schema_diagram.png # (optional) ER diagram of tables.
+
 
 
 ---
