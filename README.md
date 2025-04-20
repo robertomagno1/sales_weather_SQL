@@ -1,6 +1,7 @@
 # 🌦️ Sales & Weather Analysis Project.
 An SQL project to analyze the impact of weather on sales by integrating sales and weather data into a single optimized pipeline.
 
+
 ---
 
 ## 📌 Project goals.
