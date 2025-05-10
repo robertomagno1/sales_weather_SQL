@@ -88,7 +88,7 @@ Run 04_queries.sql to explore:
 
 For questions or input:
 - GitHub issues
-- https://github.com/robertomagno1 -
+- https://github.com/robertomagno1 
 - https://github.com/JacopoCaldana
 
 ---
